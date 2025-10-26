@@ -7,4 +7,6 @@ public interface IProfileCommandService
 {
     // Crear solo el profile
     Task<Profile?> Handle(CreateProfileCommand command);
+    Task<Profile?> Handle(UpdateProfilePointsCommand command); // NUEVO
+
 }
