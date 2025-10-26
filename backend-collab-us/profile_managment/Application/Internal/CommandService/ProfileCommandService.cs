@@ -86,4 +86,44 @@ public class ProfileCommandService(
             return null;
         }
     }
+    
+    public async Task<Profile?> Handle(UpdateProfilePointsCommand command)
+    {
+        try
+        {
+            // Buscar el perfil
+            var profile = await profileRepository.FindByIdAsync(command.ProfileId);
+            if (profile == null)
+            {
+                Console.WriteLine($"Profile with ID {command.ProfileId} not found");
+                return null;
+            }
+
+            // Actualizar puntos y lista de usuarios que dieron puntos
+            // Aquí necesitarías agregar métodos en la entidad Profile para manejar esto
+            profile.UpdatePoints(command.Points, command.PointsGivenBy);
+        
+            // Actualizar en el repositorio
+            profileRepository.Update(profile);
+        
+            // Commit changes
+            await unitOfWork.CompleteAsync();
+        
+            return profile;
+        }
+        catch (DbUpdateException dbEx)
+        {
+            Console.WriteLine($"Database error updating profile points: {dbEx.Message}");
+            if (dbEx.InnerException != null)
+            {
+                Console.WriteLine($"Inner exception: {dbEx.InnerException.Message}");
+            }
+            return null;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error updating profile points: {ex.Message}");
+            return null;
+        }
+    }
 }
