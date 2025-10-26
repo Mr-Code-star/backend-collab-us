@@ -64,6 +64,13 @@ public static class ModelBuilderExtensions
                     v => JsonSerializer.Deserialize<CV>(v, (JsonSerializerOptions)null)
                 )
                 .HasColumnType("text");
+            
+            entity.Property(p => p.PointsGivenBy)
+                .HasConversion(
+                    v => JsonSerializer.Serialize(v, (JsonSerializerOptions)null),
+                    v => JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions)null)
+                )
+                .HasColumnType("text");
 
             entity.Property(p => p.Status)
                 .IsRequired()
