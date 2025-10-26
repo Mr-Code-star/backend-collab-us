@@ -1,4 +1,5 @@
 ﻿using System.Net.Mime;
+using backend_collab_us.profile_managment.domain.model.commands;
 using backend_collab_us.profile_managment.domain.model.queries;
 using backend_collab_us.profile_managment.Interfaces.REST.Resources;
 using backend_collab_us.profile_managment.domain.services;
@@ -89,4 +90,95 @@ public class ProfileController(
             return BadRequest($"Profile could not be created: {ex.Message}");
         }
     }
+    [HttpPatch("{id}/points")]
+[SwaggerOperation(
+    Summary = "Update Profile Points",
+    Description = "Add or remove a point from a profile",
+    OperationId = "UpdateProfilePoints"
+)]
+[SwaggerResponse(StatusCodes.Status200OK, "Points updated successfully", typeof(ProfileResource))]
+[SwaggerResponse(StatusCodes.Status400BadRequest, "Points could not be updated")]
+[SwaggerResponse(StatusCodes.Status404NotFound, "Profile not found")]
+public async Task<IActionResult> UpdateProfilePoints(
+    [FromRoute] int id, 
+    [FromBody] UpdateProfilePointsResource resource)
+{
+    try
+    {
+        var command = new UpdateProfilePointsCommand(
+            id,
+            resource.Points,
+            resource.PointsGivenBy
+        );
+
+        var profile = await profileCommandService.Handle(command);
+        
+        if (profile is null) 
+            return NotFound("Profile not found");
+        
+        var profileResource = ProfileResourceFromEntityAssembler.ToResourceFromEntity(profile);
+        return Ok(profileResource);
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Error in UpdateProfilePoints endpoint: {ex.Message}");
+        return BadRequest($"Points could not be updated: {ex.Message}");
+    }
+}
+
+// ENDPOINT ALTERNATivo para toggle de puntos
+[HttpPost("{id}/points/toggle")]
+[SwaggerOperation(
+    Summary = "Toggle User Point",
+    Description = "Add or remove a point from a user to a profile",
+    OperationId = "ToggleUserPoint"
+)]
+[SwaggerResponse(StatusCodes.Status200OK, "Point toggled successfully", typeof(ProfileResource))]
+[SwaggerResponse(StatusCodes.Status400BadRequest, "Point could not be toggled")]
+[SwaggerResponse(StatusCodes.Status404NotFound, "Profile not found")]
+public async Task<IActionResult> ToggleUserPoint(
+    [FromRoute] int id, 
+    [FromBody] ToggleUserPointResource resource)
+{
+    try
+    {
+        // Primero obtener el perfil actual
+        var currentProfile = await profileQueryService.Handle(new GetProfileByIdQuery(id));
+        if (currentProfile is null)
+            return NotFound("Profile not found");
+
+        // Hacer el toggle
+        var pointsGivenBy = new List<string>(currentProfile.PointsGivenBy ?? new List<string>());
+        
+        if (pointsGivenBy.Contains(resource.UserId))
+        {
+            pointsGivenBy.Remove(resource.UserId);
+        }
+        else
+        {
+            pointsGivenBy.Add(resource.UserId);
+        }
+
+        var newPoints = pointsGivenBy.Count;
+
+        var command = new UpdateProfilePointsCommand(
+            id,
+            newPoints,
+            pointsGivenBy
+        );
+
+        var updatedProfile = await profileCommandService.Handle(command);
+        
+        if (updatedProfile is null) 
+            return BadRequest("Point could not be toggled");
+        
+        var profileResource = ProfileResourceFromEntityAssembler.ToResourceFromEntity(updatedProfile);
+        return Ok(profileResource);
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Error in ToggleUserPoint endpoint: {ex.Message}");
+        return BadRequest($"Point could not be toggled: {ex.Message}");
+    }
+}
 }
