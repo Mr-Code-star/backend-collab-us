@@ -24,6 +24,8 @@ public partial class Profile
     public DateTime CreatedAt { get; private set; }
     public DateTime UpdatedAt { get; private set; }
 
+    public List<string> PointsGivenBy { get; private set; } = new List<string>();
+
     protected Profile()
     {
         Username = string.Empty;
@@ -37,6 +39,8 @@ public partial class Profile
         Points = 0;
         CreatedAt = DateTime.UtcNow;
         UpdatedAt = DateTime.UtcNow;
+        PointsGivenBy = new List<string>();
+
     }
     
     // Constructor principal - ELIMINAR la generación automática del ID
@@ -54,11 +58,60 @@ public partial class Profile
         Points = 0;
         CreatedAt = DateTime.UtcNow;
         UpdatedAt = DateTime.UtcNow;
+        PointsGivenBy = new List<string>();
+
     }
 
     // Constructor desde comando
     public Profile(CreateProfileCommand command) 
         : this(command.UserId, command.Username, command.Avatar, command.Role, command.Bio, command.Abilities, command.Experiences, command.Cv)
     {
+    }
+    
+    public void AddPoint(string userId)
+    {
+        if (!PointsGivenBy.Contains(userId))
+        {
+            PointsGivenBy.Add(userId);
+            Points++;
+            UpdatedAt = DateTime.UtcNow;
+        }
+    }
+
+    public void RemovePoint(string userId)
+    {
+        if (PointsGivenBy.Contains(userId))
+        {
+            PointsGivenBy.Remove(userId);
+            Points = Math.Max(0, Points - 1);
+            UpdatedAt = DateTime.UtcNow;
+        }
+    }
+
+    public bool HasUserGivenPoint(string userId)
+    {
+        return PointsGivenBy.Contains(userId);
+    }
+
+    public void UpdatePoints(int points, List<string> pointsGivenBy)
+    {
+        Points = Math.Max(0, points);
+        PointsGivenBy = pointsGivenBy ?? new List<string>();
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    // Método para toggle de puntos
+    public bool ToggleUserPoint(string userId)
+    {
+        if (HasUserGivenPoint(userId))
+        {
+            RemovePoint(userId);
+            return false; // Punto quitado
+        }
+        else
+        {
+            AddPoint(userId);
+            return true; // Punto agregado
+        }
     }
 }
