@@ -19,6 +19,7 @@ public static class ProfileResourceFromEntityAssembler
             profile.Cv,
             profile.Status,
             profile.Points,
+            profile.PointsGivenBy ?? new List<string>(),
             profile.CreatedAt,
             profile.UpdatedAt
         );
