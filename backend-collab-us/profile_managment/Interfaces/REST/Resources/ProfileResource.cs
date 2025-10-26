@@ -14,6 +14,7 @@ public record ProfileResource(
     CV? Cv,
     string Status,
     int Points,
+    List<string> PointsGivenBy,
     DateTime CreatedAt,
     DateTime UpdatedAt
 );
