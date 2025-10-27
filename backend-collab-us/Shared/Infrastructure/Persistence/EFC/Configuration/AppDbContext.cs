@@ -1,4 +1,5 @@
-﻿using backend_collab_us.IAM.domain.model.agregates;
+﻿using backend_collab_us.comment_managment.domain.model.agregates;
+using backend_collab_us.IAM.domain.model.agregates;
 using backend_collab_us.IAM.Infrastructure.Persistence.EFC.Configuration.Extentions;
 using backend_collab_us.profile_managment.domain.model.agregates;
 using backend_collab_us.profile_managment.Infrastructure.Persistence.EFC.Configuration.Extentions;
@@ -14,7 +15,7 @@ public class AppDbContext(DbContextOptions options) : DbContext(options)
     
     // Profile Management Bounded Context
     public DbSet<Profile> Profiles { get; set; }
-
+    public DbSet<Comment> Comments { get; set; }
     protected override void OnConfiguring(DbContextOptionsBuilder builder)
     {
         builder.AddCreatedUpdatedInterceptor();
