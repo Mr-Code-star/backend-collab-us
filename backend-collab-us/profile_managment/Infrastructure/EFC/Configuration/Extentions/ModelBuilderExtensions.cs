@@ -1,8 +1,8 @@
-﻿using backend_collab_us.profile_managment.domain.model.agregates;
+﻿﻿using backend_collab_us.profile_managment.domain.model.agregates;
+using backend_collab_us.comment_managment.domain.model.agregates;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
 using backend_collab_us.profile_managment.domain.model.valueObjects;
-using backend_collab_us.IAM.domain.model.agregates; // Agregar referencia
 
 namespace backend_collab_us.profile_managment.Infrastructure.Persistence.EFC.Configuration.Extentions;
 
@@ -95,6 +95,44 @@ public static class ModelBuilderExtensions
             entity.HasIndex(p => p.Status);
 
             entity.HasIndex(p => p.Role);
+        });
+
+        // Configuración de la entidad Comment
+        builder.Entity<Comment>(entity =>
+        {
+            // Llave primaria
+            entity.HasKey(c => c.Id);
+            entity.Property(c => c.Id)
+                .IsRequired()
+                .ValueGeneratedOnAdd();
+
+            // Relación con Profile (un perfil puede tener muchos comentarios)
+            entity.HasOne<Profile>()
+                .WithMany()
+                .HasForeignKey(c => c.ProfileId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Configuración de propiedades
+            entity.Property(c => c.ProfileId)
+                .IsRequired();
+
+            entity.Property(c => c.UserId)
+                .IsRequired();
+
+            entity.Property(c => c.Rating)
+                .IsRequired();
+
+            entity.Property(c => c.CommentText)
+                .IsRequired()
+                .HasMaxLength(1000);
+
+            entity.Property(c => c.CreatedAt)
+                .IsRequired();
+
+            // Índices
+            entity.HasIndex(c => c.ProfileId);
+            entity.HasIndex(c => c.UserId);
+            entity.HasIndex(c => c.CreatedAt);
         });
     }
 }
