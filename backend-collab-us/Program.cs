@@ -1,3 +1,4 @@
+using backend_collab_us.comment_managment.Application.Internal.QueryService;
 using backend_collab_us.IAM.Application.Internal.CommandServices;
 using backend_collab_us.IAM.Application.Internal.OutboundServices;
 using backend_collab_us.IAM.Application.Internal.QueryServices;
@@ -105,11 +106,13 @@ builder.Services.Configure<TokenSettings>(builder.Configuration.GetSection("Toke
 // Profile Management 
 // Repositories
 builder.Services.AddScoped<IProfileRepository, ProfileRepository>();
+builder.Services.AddScoped<ICommentRepository, CommentRepository>();
 // Commands
 builder.Services.AddScoped<IProfileCommandService, ProfileCommandService>();
+builder.Services.AddScoped<ICommentCommandService, CommentCommandService>();
 // Query Services
 builder.Services.AddScoped<IProfileQueryService, ProfileQueryService>();
-
+builder.Services.AddScoped<ICommentQueryService, CommentQueryService>();
 // Add Mediator for CQRS
 builder.Services.AddCortexMediator(
     configuration: builder.Configuration,
