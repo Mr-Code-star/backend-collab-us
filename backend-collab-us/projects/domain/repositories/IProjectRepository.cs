@@ -24,5 +24,7 @@ public interface IProjectRepository : IBaseRepository<Project>
     Task<Project?> FindByIdWithRelationsAsync(int projectId);
     
     Task<bool> ExistsByIdAsync(int projectId);
+    
+    Task<IEnumerable<Project>> GetAllWithRelationsAsync();
 
 }
