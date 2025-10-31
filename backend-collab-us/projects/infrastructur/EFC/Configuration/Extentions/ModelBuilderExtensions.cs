@@ -27,14 +27,16 @@ public static class ModelBuilderExtensions
             // Relación con AcademicLevel
             entity.HasOne(p => p.AcademicLevelName)
                 .WithMany()
-                .HasForeignKey("AcademicLevelId") // Nombre de la FK en la base de datos
+                .HasForeignKey("AcademicLevelId")
                 .OnDelete(DeleteBehavior.Restrict);
 
+
             // Relación con DurationType
-            entity.HasOne(p => p.DurationType)
+            entity.HasOne(p => p.AcademicLevelName)
                 .WithMany()
-                .HasForeignKey("DurationTypeId") // Nombre de la FK en la base de datos
+                .HasForeignKey("AcademicLevelId")
                 .OnDelete(DeleteBehavior.Restrict);
+
 
             // Configuración de propiedades
             entity.Property(p => p.UserId)
@@ -229,7 +231,7 @@ public static class ModelBuilderExtensions
                 .WithMany(p => p.Roles)
                 .HasForeignKey(r => r.ProjectId)
                 .OnDelete(DeleteBehavior.Cascade);
-
+            
             // Configuración de propiedades
             entity.Property(r => r.Name)
                 .IsRequired()
