@@ -13,6 +13,12 @@ using backend_collab_us.profile_managment.Application.Internal.CommandService;
 using backend_collab_us.profile_managment.Application.Internal.QueryService;
 using backend_collab_us.profile_managment.domain.repositories;
 using backend_collab_us.profile_managment.domain.services;
+using backend_collab_us.projects.Application.Internal.CommandService;
+using backend_collab_us.projects.Application.Internal.QueryService;
+using backend_collab_us.projects.domain.repositories;
+using backend_collab_us.projects.domain.repository;
+using backend_collab_us.projects.domain.services;
+using backend_collab_us.projects.infrastructur.persistence;
 using backend_collab_us.Shared.Domain.Exeptions;
 using backend_collab_us.Shared.Domain.Infrastructure.Interfaces.ASP.Configuration;
 using backend_collab_us.Shared.Domain.Repositories;
@@ -113,6 +119,21 @@ builder.Services.AddScoped<ICommentCommandService, CommentCommandService>();
 // Query Services
 builder.Services.AddScoped<IProfileQueryService, ProfileQueryService>();
 builder.Services.AddScoped<ICommentQueryService, CommentQueryService>();
+
+// Projects Bounded Context - AGREGAR TODO ESTO
+// Repositories
+builder.Services.AddScoped<IProjectRepository, ProjectRepository>();
+builder.Services.AddScoped<IApplicationRepository, ApplicationRepository>();
+builder.Services.AddScoped<IFavoriteRepository, FavoriteRepository>();
+// Command Services
+builder.Services.AddScoped<IProjectCommandService, ProjectCommandService>();
+builder.Services.AddScoped<IApplicationCommandService, ApplicationCommandService>();
+builder.Services.AddScoped<IFavoriteCommandService, FavoriteCommandService>();
+// Query Services
+builder.Services.AddScoped<IProjectQueryService, ProjectQueryService>();
+builder.Services.AddScoped<IApplicationQueryService, ApplicationQueryService>();
+builder.Services.AddScoped<IFavoriteQueryService, FavoriteQueryService>();
+
 // Add Mediator for CQRS
 builder.Services.AddCortexMediator(
     configuration: builder.Configuration,
