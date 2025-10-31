@@ -102,8 +102,10 @@ public class ProjectRepository(AppDbContext context) : BaseRepository<Project>(c
     {
         return await Context.Set<Project>()
             .Include(p => p.Roles)
-                .ThenInclude(r => r.Cards)
-            .Include(p => p.Collaborators)
+            .ThenInclude(r => r.Cards)
+            .Include(p => p.AcademicLevelName)
+            .Include(p => p.DurationType)
+            .Include(p => p.User) // ✅ Esto sigue siendo útil para tener el UserId
             .FirstOrDefaultAsync(p => p.Id == projectId);
     }
     
@@ -111,5 +113,16 @@ public class ProjectRepository(AppDbContext context) : BaseRepository<Project>(c
     {
         return await Context.Set<Project>()
             .AnyAsync(p => p.Id == projectId);
+    }
+    
+    public async Task<IEnumerable<Project>> GetAllWithRelationsAsync()
+    {
+        return await Context.Set<Project>()
+            .Include(p => p.Roles)
+            .ThenInclude(r => r.Cards)
+            .Include(p => p.AcademicLevelName)
+            .Include(p => p.DurationType)
+            .Include(p => p.User) // Incluir el usuario para obtener el UserId
+            .ToListAsync();
     }
 }
