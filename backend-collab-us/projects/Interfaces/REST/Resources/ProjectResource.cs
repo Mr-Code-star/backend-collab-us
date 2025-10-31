@@ -17,5 +17,6 @@ public record ProjectResource(
     List<string> Areas,
     List<string> Tags,
     DateTime CreatedAt,
-    DateTime UpdatedAt
+    DateTime UpdatedAt,
+    string AuthorName
 );
