@@ -9,14 +9,15 @@ public class ProjectQueryService(IProjectRepository projectRepository) : IProjec
 {
     public async Task<IEnumerable<Project>> Handle(GetAllProjectsQuery query)
     {
-        return await projectRepository.ListAsync();
+        // En lugar de return await projectRepository.ListAsync();
+        // Necesitas cargar las relaciones también
+        return await projectRepository.GetAllWithRelationsAsync();
     }
 
     public async Task<Project?> Handle(GetProjectByIdQuery query)
     {
-        return await projectRepository.FindByIdAsync(query.ProjectId);
+        return await projectRepository.FindByIdWithRelationsAsync(query.ProjectId);
     }
-
     public async Task<IEnumerable<Project>> Handle(GetProjectsByAreaQuery query)
     {
         return await projectRepository.GetByAreaAsync(query.Area);
