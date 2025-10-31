@@ -1,4 +1,5 @@
 ﻿using System.Net.Mime;
+using backend_collab_us.profile_managment.domain.repositories;
 using backend_collab_us.projects.domain.model.commands;
 using backend_collab_us.projects.domain.model.queries;
 using backend_collab_us.projects.domain.services;
@@ -16,7 +17,10 @@ namespace backend_collab_us.projects.Interfaces;
 [SwaggerTag("Available Projects Endpoints")]
 public class ProjectsController(
     IProjectCommandService projectCommandService,
-    IProjectQueryService projectQueryService) : ControllerBase
+    IProjectQueryService projectQueryService, 
+    IProfileRepository profileRepository
+    ) : ControllerBase
+    
 {
     [HttpGet]
     [SwaggerOperation(
@@ -27,7 +31,15 @@ public class ProjectsController(
     public async Task<IActionResult> GetAllProjects()
     {
         var projects = await projectQueryService.Handle(new GetAllProjectsQuery());
-        var resources = projects.Select(ProjectResourceFromEntityAssembler.ToResourceFromEntity);
+    
+        // Necesitas el IProfileRepository aquí también
+        var resources = new List<ProjectResource>();
+        foreach (var project in projects)
+        {
+            var resource = await ProjectResourceFromEntityAssembler.ToResourceFromEntityAsync(project, profileRepository);
+            resources.Add(resource);
+        }
+    
         return Ok(resources);
     }
 
@@ -43,10 +55,14 @@ public class ProjectsController(
     {
         var project = await projectQueryService.Handle(new GetProjectByIdQuery(id));
         if (project is null) return NotFound();
-        var resource = ProjectResourceFromEntityAssembler.ToResourceFromEntity(project);
+        
+        // ✅ Usar el método async que busca el perfil
+        var resource = await ProjectResourceFromEntityAssembler.ToResourceFromEntityAsync(
+            project, 
+            profileRepository);
         return Ok(resource);
     }
-
+    
     [HttpGet("search")]
     [SwaggerOperation(
         Summary = "Search Projects",
