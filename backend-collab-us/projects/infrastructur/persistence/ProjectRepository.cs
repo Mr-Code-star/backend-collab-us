@@ -105,10 +105,11 @@ public class ProjectRepository(AppDbContext context) : BaseRepository<Project>(c
             .ThenInclude(r => r.Cards)
             .Include(p => p.AcademicLevelName)
             .Include(p => p.DurationType)
-            .Include(p => p.User) // ✅ Esto sigue siendo útil para tener el UserId
+            .Include(p => p.User)
+            .Include(p => p.Collaborators) // ✅ Esto debería cargar los colaboradores
+            .ThenInclude(c => c.Applicant) // ✅ Si necesitas datos del aplicante
             .FirstOrDefaultAsync(p => p.Id == projectId);
     }
-    
     public async Task<bool> ExistsByIdAsync(int projectId)
     {
         return await Context.Set<Project>()
@@ -122,7 +123,8 @@ public class ProjectRepository(AppDbContext context) : BaseRepository<Project>(c
             .ThenInclude(r => r.Cards)
             .Include(p => p.AcademicLevelName)
             .Include(p => p.DurationType)
-            .Include(p => p.User) // Incluir el usuario para obtener el UserId
+            .Include(p => p.User)
+            .Include(p => p.Collaborators) // ✅ AGREGAR ESTA LÍNEA
             .ToListAsync();
     }
 }
