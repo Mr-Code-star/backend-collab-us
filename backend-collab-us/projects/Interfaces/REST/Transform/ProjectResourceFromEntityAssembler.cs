@@ -13,56 +13,81 @@ public static class ProjectResourceFromEntityAssembler
     }
 
     // ✅ Método privado que acepta el authorName
-    private static ProjectResource ToResourceFromEntity(Project project, string authorName)
-    {
-        var academicLevelName = project.AcademicLevelName?.Name ?? 
-                                project.AcademicLevelName?.ToString() ?? 
-                                "No especificado";
+private static ProjectResource ToResourceFromEntity(Project project, string authorName)
+{
+    var academicLevelName = project.AcademicLevelName?.Name ?? 
+                            project.AcademicLevelName?.ToString() ?? 
+                            "No especificado";
 
-        var durationTypeName = project.DurationType?.Name ?? 
-                               project.DurationType?.Value ?? 
-                               "meses";
+    var durationTypeName = project.DurationType?.Name ?? 
+                           project.DurationType?.Value ?? 
+                           "meses";
 
-        var roleResources = project.Roles?.Select(role =>
-            new RoleResource(
-                role.Id,
-                role.Name,
-                role.Cards?.Select(card =>
-                    new RoleCardResource(
-                        card.Id,
-                        card.Title,
-                        card.Items ?? new List<string>(),
-                        card.CreatedAt,
-                        card.UpdatedAt
-                    )
-                ).ToList() ?? new List<RoleCardResource>(),
-                role.CreatedAt,
-                role.UpdatedAt
+    var roleResources = project.Roles?.Select(role =>
+        new RoleResource(
+            role.Id,
+            role.Name,
+            role.Cards?.Select(card =>
+                new RoleCardResource(
+                    card.Id,
+                    card.Title,
+                    card.Items ?? new List<string>(),
+                    card.CreatedAt,
+                    card.UpdatedAt
+                )
+            ).ToList() ?? new List<RoleCardResource>(),
+            role.CreatedAt,
+            role.UpdatedAt
+        )
+    ).ToList() ?? new List<RoleResource>();
+
+    // ✅ CORREGIR: Incluir colaboradores en el Resource
+    var collaboratorResources = project.Collaborators?
+        .Where(collab => collab.Status == "accepted") // ✅ Solo colaboradores aceptados
+        .Select(collab =>
+            new ApplicationResource(
+                collab.Id,
+                collab.ProjectId,
+                collab.ApplicantId,
+                collab.ApplicantName,
+                collab.ApplicantEmail,
+                collab.ApplicantPortfolio ?? "",
+                collab.ApplicantPhone ?? "",
+                collab.RoleId,
+                collab.Message,
+                collab.AcceptedTerms,
+                collab.CvFileName ?? "",
+                collab.Status,
+                collab.ReviewNotes ?? "",
+                collab.ReviewerId,
+                collab.CreatedAt,
+                collab.UpdatedAt,
+                collab.ReviewedAt
             )
-        ).ToList() ?? new List<RoleResource>();
+        ).ToList() ?? new List<ApplicationResource>();
 
-        return new ProjectResource(
-            project.Id,
-            project.UserId,
-            project.Title,
-            project.Description,
-            project.Summary,
-            academicLevelName,
-            project.Benefits,
-            project.Skills ?? new List<string>(),
-            project.DurationQuantity,
-            durationTypeName,
-            project.Status,
-            project.Progress,
-            roleResources,
-            project.Areas?.ToList() ?? new List<string>(),
-            project.Tags?.ToList() ?? new List<string>(),
-            project.CreatedAt,
-            project.UpdatedAt,
-            authorName // ✅ Usar el nombre pasado como parámetro
-        );
-    }
-
+    return new ProjectResource(
+        project.Id,
+        project.UserId,
+        project.Title,
+        project.Description,
+        project.Summary,
+        academicLevelName,
+        project.Benefits,
+        project.Skills ?? new List<string>(),
+        project.DurationQuantity,
+        durationTypeName,
+        project.Status,
+        project.Progress,
+        roleResources,
+        project.Areas?.ToList() ?? new List<string>(),
+        project.Tags?.ToList() ?? new List<string>(),
+        project.CreatedAt,
+        project.UpdatedAt,
+        authorName,
+        collaboratorResources 
+    );
+}
     // ✅ NUEVO: Método async que busca el perfil
     public static async Task<ProjectResource> ToResourceFromEntityAsync(
         Project project, 
