@@ -55,8 +55,17 @@ public class ProjectsController(
     {
         var project = await projectQueryService.Handle(new GetProjectByIdQuery(id));
         if (project is null) return NotFound();
-        
-        // ✅ Usar el método async que busca el perfil
+    
+        // ✅ DEBUG: Log para verificar colaboradores
+        Console.WriteLine($"🔍 Project {id} collaborators count: {project.Collaborators?.Count ?? 0}");
+        if (project.Collaborators != null)
+        {
+            foreach (var collaborator in project.Collaborators)
+            {
+                Console.WriteLine($"👥 Collaborator: {collaborator.ApplicantName}, Status: {collaborator.Status}");
+            }
+        }
+    
         var resource = await ProjectResourceFromEntityAssembler.ToResourceFromEntityAsync(
             project, 
             profileRepository);
