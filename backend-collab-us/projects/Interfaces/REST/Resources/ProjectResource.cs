@@ -18,5 +18,6 @@ public record ProjectResource(
     List<string> Tags,
     DateTime CreatedAt,
     DateTime UpdatedAt,
-    string AuthorName
+    string AuthorName,
+    List<ApplicationResource> Collaborators // ✅ NUEVA PROPIEDAD
 );
