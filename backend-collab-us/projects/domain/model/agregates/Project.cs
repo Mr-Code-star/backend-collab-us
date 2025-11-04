@@ -29,7 +29,8 @@ public partial class Project
    protected internal List<string> _areas = new();
    public IReadOnlyCollection<string> Areas => _areas.AsReadOnly();
   // Colaboradores
-  public List<Application> Collaborators { get; private set; } = new();
+  
+  public virtual List<Application> Collaborators { get; private set; } = new();
   // Tags
   protected internal List<string> _tags = new();
   public IReadOnlyCollection<string> Tags => _tags.AsReadOnly();
