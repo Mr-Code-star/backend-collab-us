@@ -105,14 +105,54 @@ public class ApplicationCommandService(
 
     public async Task<domain.model.agregates.Application?> Handle(AcceptApplicationCommand command)
     {
-        var updateCommand = new UpdateApplicationStatusCommand(
-            command.ApplicationId,
-            "accepted",
-            command.ReviewNotes,
-            command.ReviewerId
-        );
-        
-        return await Handle(updateCommand);
+        try
+        {
+            // ✅ CARGAR la aplicación con relaciones
+            var application = await applicationRepository.FindByIdWithRelationsAsync(command.ApplicationId);
+            if (application == null)
+            {
+                Console.WriteLine($"Application with ID {command.ApplicationId} not found");
+                return null;
+            }
+
+            // ✅ CARGAR el proyecto con relaciones (incluyendo colaboradores)
+            var project = await projectRepository.FindByIdWithRelationsAsync(application.ProjectId);
+            if (project == null)
+            {
+                Console.WriteLine($"Project with ID {application.ProjectId} not found");
+                return null;
+            }
+
+            // Actualizar estado de la aplicación
+            application.UpdateStatus("accepted", command.ReviewNotes, command.ReviewerId);
+    
+            // ✅ VERIFICAR si ya es colaborador
+            var existingCollaborator = project.Collaborators
+                .FirstOrDefault(c => c.ApplicantId == application.ApplicantId && c.RoleId == application.RoleId);
+    
+            if (existingCollaborator == null)
+            {
+                // ✅ AGREGAR como colaborador al proyecto
+                project.Collaborators.Add(application);
+                projectRepository.Update(project);
+                Console.WriteLine($"✅ Added applicant {application.ApplicantName} as collaborator to project {project.Title}");
+            }
+            else
+            {
+                Console.WriteLine($"⚠️ Applicant {application.ApplicantName} is already a collaborator");
+            }
+
+            applicationRepository.Update(application);
+            await unitOfWork.CompleteAsync();
+    
+            return application;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"❌ Error accepting application: {ex.Message}");
+            Console.WriteLine($"❌ Stack trace: {ex.StackTrace}");
+            return null;
+        }
     }
 
     public async Task<domain.model.agregates.Application?> Handle(RejectApplicationCommand command)
