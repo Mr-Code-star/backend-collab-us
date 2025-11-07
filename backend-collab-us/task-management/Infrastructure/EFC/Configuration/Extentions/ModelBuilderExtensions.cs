@@ -1,4 +1,5 @@
-﻿using backend_collab_us.task_management.domain.model.valueObjects;
+﻿using backend_collab_us.task_management.domain.model.agregates;
+using backend_collab_us.task_management.domain.model.valueObjects;
 using Task = backend_collab_us.task_management.domain.model.agregates.Task;
 using Microsoft.EntityFrameworkCore;
 
@@ -175,6 +176,132 @@ public static class ModelBuilderExtensions
             entity.HasOne<Task>()
                 .WithMany(t => t.Attachments)
                 .HasForeignKey(ta => ta.TaskId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+        
+        // NUEVA CONFIGURACIÓN: TaskSubmission
+        ApplyTaskSubmissionConfiguration(builder);
+    }
+    
+    private static void ApplyTaskSubmissionConfiguration(ModelBuilder builder)
+    {
+        // Configuración de TaskSubmission
+        builder.Entity<TaskSubmission>(entity =>
+        {
+            // Llave primaria
+            entity.HasKey(ts => ts.Id);
+            entity.Property(ts => ts.Id)
+                .IsRequired()
+                .ValueGeneratedOnAdd();
+            
+            // Relación con Task
+            entity.HasOne(ts => ts.Task)
+                .WithMany() // Una tarea puede tener múltiples submissions
+                .HasForeignKey(ts => ts.TaskId)
+                .OnDelete(DeleteBehavior.Cascade);
+            
+            // Configuración de propiedades
+            entity.Property(ts => ts.TaskId)
+                .IsRequired();
+            
+            entity.Property(ts => ts.CollaboratorId)
+                .IsRequired();
+            
+            entity.Property(ts => ts.CollaboratorName)
+                .IsRequired()
+                .HasMaxLength(100);
+            
+            entity.Property(ts => ts.SubmittedAt)
+                .IsRequired();
+            
+            entity.Property(ts => ts.Notes)
+                .HasMaxLength(2000);
+            
+            entity.Property(ts => ts.Status)
+                .IsRequired()
+                .HasMaxLength(50)
+                .HasDefaultValue("submitted");
+            
+            entity.Property(ts => ts.ReviewNotes)
+                .HasMaxLength(2000);
+            
+            entity.Property(ts => ts.CreatedAt)
+                .IsRequired();
+            
+            entity.Property(ts => ts.UpdatedAt)
+                .IsRequired();
+            
+            // Propiedades opcionales
+            entity.Property(ts => ts.ReviewedAt)
+                .IsRequired(false);
+            
+            entity.Property(ts => ts.ReviewerId)
+                .IsRequired(false);
+            
+            // Índices
+            entity.HasIndex(ts => ts.TaskId);
+            entity.HasIndex(ts => ts.CollaboratorId);
+            entity.HasIndex(ts => ts.Status);
+            entity.HasIndex(ts => ts.SubmittedAt);
+            entity.HasIndex(ts => new { ts.TaskId, ts.CollaboratorId })
+                .IsUnique(); // Un colaborador solo puede tener una submission por tarea
+        });
+
+        // Configuración de SubmissionLink
+        builder.Entity<SubmissionLink>(entity =>
+        {
+            entity.HasKey(sl => sl.Id);
+            entity.Property(sl => sl.Id)
+                .IsRequired()
+                .ValueGeneratedOnAdd();
+            
+            entity.Property(sl => sl.Url)
+                .IsRequired()
+                .HasMaxLength(500);
+            
+            entity.Property(sl => sl.Description)
+                .HasMaxLength(500);
+            
+            entity.Property(sl => sl.CreatedAt)
+                .IsRequired();
+            
+            // Relación con TaskSubmission
+            entity.HasOne<TaskSubmission>()
+                .WithMany(ts => ts.Links)
+                .HasForeignKey(sl => sl.TaskSubmissionId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // Configuración de SubmissionAttachment
+        builder.Entity<SubmissionAttachment>(entity =>
+        {
+            entity.HasKey(sa => sa.Id);
+            entity.Property(sa => sa.Id)
+                .IsRequired()
+                .ValueGeneratedOnAdd();
+            
+            entity.Property(sa => sa.Name)
+                .IsRequired()
+                .HasMaxLength(255);
+            
+            entity.Property(sa => sa.Type)
+                .IsRequired()
+                .HasMaxLength(50);
+            
+            entity.Property(sa => sa.Url)
+                .IsRequired()
+                .HasMaxLength(500);
+            
+            entity.Property(sa => sa.Size)
+                .IsRequired();
+            
+            entity.Property(sa => sa.UploadedAt)
+                .IsRequired();
+            
+            // Relación con TaskSubmission
+            entity.HasOne<TaskSubmission>()
+                .WithMany(ts => ts.Attachments)
+                .HasForeignKey(sa => sa.TaskSubmissionId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
     }

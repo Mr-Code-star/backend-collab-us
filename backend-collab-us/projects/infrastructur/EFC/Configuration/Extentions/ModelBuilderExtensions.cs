@@ -32,11 +32,10 @@ public static class ModelBuilderExtensions
 
 
             // Relación con DurationType
-            entity.HasOne(p => p.AcademicLevelName)
+            entity.HasOne(p => p.DurationType)
                 .WithMany()
-                .HasForeignKey("AcademicLevelId")
+                .HasForeignKey("DurationTypeId")
                 .OnDelete(DeleteBehavior.Restrict);
-
 
             // Configuración de propiedades
             entity.Property(p => p.UserId)
@@ -63,6 +62,11 @@ public static class ModelBuilderExtensions
                     v => JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions)null)
                 )
                 .HasColumnType("text");
+            
+            entity.HasMany(p => p.Tasks)
+                .WithOne(t => t.Project)
+                .HasForeignKey(t => t.ProjectId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             entity.Property(p => p.DurationQuantity)
                 .IsRequired();
