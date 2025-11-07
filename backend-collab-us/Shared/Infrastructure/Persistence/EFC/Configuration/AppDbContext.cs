@@ -6,8 +6,12 @@ using backend_collab_us.profile_managment.Infrastructure.Persistence.EFC.Configu
 using backend_collab_us.projects.domain.model.agregates;
 using backend_collab_us.projects.domain.model.valueObjects;
 using backend_collab_us.projects.infrastructur.EFC.Configuration.Extentions;
+using backend_collab_us.task_management.domain.model.agregates;
+using backend_collab_us.task_management.domain.model.valueObjects;
+using backend_collab_us.task_management.Infrastructure.EFC.Configuration.Extentions;
 using EntityFrameworkCore.CreatedUpdatedDate.Extensions;
 using Microsoft.EntityFrameworkCore;
+using Task = backend_collab_us.task_management.domain.model.agregates.Task;
 
 namespace backend_collab_us.Shared.Infrastructure.Persistence.EFC.Configuration;
 
@@ -30,6 +34,19 @@ public class AppDbContext(DbContextOptions options) : DbContext(options)
     public DbSet<AcademicLevel> AcademicLevels { get; set; }
     public DbSet<DurationType> DurationTypes { get; set; }
     public DbSet<Area> Areas { get; set; }
+    
+    // Task Management Bounded Context
+    public DbSet<Task> Tasks { get; set; }
+    public DbSet<ChecklistItem> ChecklistItems { get; set; }
+    public DbSet<TaskTool> TaskTools { get; set; }
+    public DbSet<TaskAttachment> TaskAttachments { get; set; }
+
+    // Task Submission Bounded Context
+    
+    public DbSet<TaskSubmission> TaskSubmissions { get; set; }
+    public DbSet<SubmissionLink> SubmissionLinks { get; set; }
+    public DbSet<SubmissionAttachment> SubmissionAttachments { get; set; }
+    
     protected override void OnConfiguring(DbContextOptionsBuilder builder)
     {
         builder.AddCreatedUpdatedInterceptor();
@@ -44,5 +61,6 @@ public class AppDbContext(DbContextOptions options) : DbContext(options)
         builder.ApplyIamConfiguration();
         builder.ApplyProfileManagementConfiguration();
         builder.ApplyProjectsConfiguration();
+        builder.ApplyTasksConfiguration();
     }
 }
