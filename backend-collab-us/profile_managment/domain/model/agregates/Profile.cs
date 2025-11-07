@@ -12,19 +12,19 @@ public partial class Profile
     // AGREGAR: Relación con User
     public User User { get; private set; }
     
-    public string Username { get; private set; }
-    public string? Avatar { get; private set; }
-    public string Role { get; private set; }
-    public string Bio { get; private set; }
-    public List<string> Abilities { get; private set; }
-    public List<Experience> Experiences { get; private set; }
-    public CV? Cv { get; private set; }
+    public string Username { get; set; }
+    public string? Avatar { get; set; }
+    public string Role { get; set; }
+    public string Bio { get; set; }
+    public List<string> Abilities { get; set; }
+    public List<Experience> Experiences { get; set; }
+    public CV? Cv { get; set; }
     public string Status { get; private set; }
-    public int Points { get; private set; }
+    public int Points { get; set; }
     public DateTime CreatedAt { get; private set; }
-    public DateTime UpdatedAt { get; private set; }
+    public DateTime UpdatedAt { get; set; }
 
-    public List<string> PointsGivenBy { get; private set; } = new List<string>();
+    public List<string> PointsGivenBy { get; set; } = new List<string>();
 
     protected Profile()
     {

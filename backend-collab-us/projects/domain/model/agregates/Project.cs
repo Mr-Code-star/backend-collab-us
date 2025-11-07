@@ -2,6 +2,8 @@
 using backend_collab_us.projects.domain.model.commands;
 using backend_collab_us.projects.domain.model.valueObjects;
 
+using Task = backend_collab_us.task_management.domain.model.agregates.Task;
+
 namespace backend_collab_us.projects.domain.model.agregates;
 
 public partial class Project
@@ -34,6 +36,9 @@ public partial class Project
   // Tags
   protected internal List<string> _tags = new();
   public IReadOnlyCollection<string> Tags => _tags.AsReadOnly();
+  
+  private readonly List<Task> _tasks = new();
+  public IReadOnlyCollection<Task> Tasks => _tasks.AsReadOnly();
   
   protected Project()
   {
@@ -128,4 +133,39 @@ public partial class Project
           }
       }
     }
+    public void AddTask(Task task)
+    {
+        if (task.ProjectId != Id)
+            throw new InvalidOperationException("La tarea no pertenece a este proyecto");
+
+        _tasks.Add(task);
+        UpdatedAt = DateTime.Now;
+        
+        // Opcional: Recalcular progreso del proyecto
+        UpdateProjectProgress();
+    }
+    public bool RemoveTask(int taskId)
+    {
+        var task = _tasks.FirstOrDefault(t => t.Id == taskId);
+        if (task != null)
+        {
+            _tasks.Remove(task);
+            UpdatedAt = DateTime.Now;
+            UpdateProjectProgress();
+            return true;
+        }
+        return false;
+    }
+    private void UpdateProjectProgress()
+    {
+        if (_tasks.Count == 0)
+        {
+            Progress = 0;
+            return;
+        }
+
+        var totalProgress = _tasks.Sum(t => t.Progress);
+        Progress = totalProgress / _tasks.Count;
+    }
+
 }
