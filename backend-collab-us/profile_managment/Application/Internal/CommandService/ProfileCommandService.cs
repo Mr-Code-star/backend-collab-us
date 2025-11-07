@@ -91,6 +91,54 @@ public class ProfileCommandService(
     {
         try
         {
+            Console.WriteLine($"🔄 Actualizando puntos para perfil {command.ProfileId}");
+            Console.WriteLine($"📊 Nuevos puntos: {command.Points}");
+            Console.WriteLine($"👥 Usuarios que dieron puntos: {string.Join(", ", command.PointsGivenBy)}");
+
+            // Buscar el perfil
+            var profile = await profileRepository.FindByIdAsync(command.ProfileId);
+            if (profile == null)
+            {
+                Console.WriteLine($"❌ Perfil con ID {command.ProfileId} no encontrado");
+                return null;
+            }
+
+            Console.WriteLine($"📋 Puntos anteriores: {profile.Points}");
+            Console.WriteLine($"📋 Lista anterior: {string.Join(", ", profile.PointsGivenBy)}");
+
+            // Actualizar puntos y lista de usuarios que dieron puntos
+            profile.UpdatePoints(command.Points, command.PointsGivenBy);
+
+            Console.WriteLine($"✅ Puntos actualizados exitosamente");
+
+            // Actualizar en el repositorio
+            profileRepository.Update(profile);
+
+            // Commit changes
+            await unitOfWork.CompleteAsync();
+
+            return profile;
+        }
+        catch (DbUpdateException dbEx)
+        {
+            Console.WriteLine($"❌ Error de base de datos: {dbEx.Message}");
+            if (dbEx.InnerException != null)
+            {
+                Console.WriteLine($"❌ Inner exception: {dbEx.InnerException.Message}");
+            }
+            return null;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"❌ Error general: {ex.Message}");
+            return null;
+        }
+    }
+
+    public async  Task<Profile?> Handle(UpdateProfileCommand command)
+    {
+        try
+        {
             // Buscar el perfil
             var profile = await profileRepository.FindByIdAsync(command.ProfileId);
             if (profile == null)
@@ -99,10 +147,37 @@ public class ProfileCommandService(
                 return null;
             }
 
-            // Actualizar puntos y lista de usuarios que dieron puntos
-            // Aquí necesitarías agregar métodos en la entidad Profile para manejar esto
-            profile.UpdatePoints(command.Points, command.PointsGivenBy);
+            // Actualizar campos si se proporcionan
+            if (!string.IsNullOrEmpty(command.Username) && command.Username != profile.Username)
+                profile.Username = command.Username;
         
+            if (command.Avatar != null)
+                profile.Avatar = command.Avatar;
+        
+            if (!string.IsNullOrEmpty(command.Role))
+                profile.Role = command.Role;
+        
+            if (!string.IsNullOrEmpty(command.Bio))
+                profile.Bio = command.Bio;
+        
+            if (command.Abilities != null)
+                profile.Abilities = command.Abilities;
+        
+            if (command.Experiences != null)
+                profile.Experiences = command.Experiences;
+        
+            if (command.Cv != null)
+                profile.Cv = command.Cv;
+        
+            // Actualizar puntos si se proporcionan
+            if (command.Points.HasValue)
+                profile.Points = command.Points.Value;
+        
+            if (command.PointsGivenBy != null)
+                profile.PointsGivenBy = command.PointsGivenBy;
+
+            profile.UpdatedAt = DateTime.UtcNow;
+
             // Actualizar en el repositorio
             profileRepository.Update(profile);
         
@@ -113,7 +188,7 @@ public class ProfileCommandService(
         }
         catch (DbUpdateException dbEx)
         {
-            Console.WriteLine($"Database error updating profile points: {dbEx.Message}");
+            Console.WriteLine($"Database error updating profile: {dbEx.Message}");
             if (dbEx.InnerException != null)
             {
                 Console.WriteLine($"Inner exception: {dbEx.InnerException.Message}");
@@ -122,8 +197,9 @@ public class ProfileCommandService(
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error updating profile points: {ex.Message}");
+            Console.WriteLine($"Error updating profile: {ex.Message}");
             return null;
         }
+        
     }
 }

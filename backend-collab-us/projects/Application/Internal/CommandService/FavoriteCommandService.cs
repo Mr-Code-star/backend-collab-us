@@ -17,49 +17,61 @@ public class FavoriteCommandService(
     {
         try
         {
-            // Validar que el proyecto existe
+            Console.WriteLine($"🔄 Creating favorite - Profile: {command.ProfileId}, Project: {command.ProjectId}");
+
+            // 1. Validar que el proyecto existe
             var projectExists = await projectRepository.ExistsByIdAsync(command.ProjectId);
             if (!projectExists)
             {
-                Console.WriteLine($"Project with ID {command.ProjectId} does not exist");
+                Console.WriteLine($"❌ Project with ID {command.ProjectId} does not exist");
                 return null;
             }
 
-            // Validar que no es favorito duplicado
-            var exists = await favoriteRepository.ExistsByProfileAndProjectAsync(
+            // 2. 🔥 PRIMERO verificar si ya existe el favorito
+            var existingFavorite = await favoriteRepository.FindByProfileAndProjectAsync(
                 command.ProfileId, command.ProjectId);
-            if (exists)
+                
+            if (existingFavorite != null)
             {
-                Console.WriteLine($"Project is already in favorites");
-                return null;
+                Console.WriteLine($"⚠️ Favorite already exists - ID: {existingFavorite.Id}");
+                return existingFavorite;
             }
 
-            // Crear el favorito
+            // 3. Crear nuevo favorito solo si no existe
             var favorite = new Favorite(command);
-            
-            // Agregar al repositorio
             await favoriteRepository.AddAsync(favorite);
-            
-            // Commit changes
             await unitOfWork.CompleteAsync();
             
+            Console.WriteLine($"✅ Favorite created successfully - ID: {favorite.Id}");
             return favorite;
         }
         catch (DbUpdateException dbEx)
         {
-            Console.WriteLine($"Database error creating favorite: {dbEx.Message}");
-            if (dbEx.InnerException != null)
+            // 🔥 SIMPLIFICADO: Solo log el error y retorna null
+            Console.WriteLine($"❌ Database error creating favorite: {dbEx.Message}");
+            
+            // Intentar recuperar el favorito existente por si acaso
+            try 
             {
-                Console.WriteLine($"Inner exception: {dbEx.InnerException.Message}");
+                var existingFavorite = await favoriteRepository.FindByProfileAndProjectAsync(
+                    command.ProfileId, command.ProjectId);
+                if (existingFavorite != null)
+                {
+                    Console.WriteLine($"🔄 Recovered existing favorite after error: {existingFavorite.Id}");
+                    return existingFavorite;
+                }
             }
+            catch (Exception recoveryEx)
+            {
+                Console.WriteLine($"❌ Error recovering favorite: {recoveryEx.Message}");
+            }
+            
             return null;
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error creating favorite: {ex.Message}");
+            Console.WriteLine($"❌ Error creating favorite: {ex.Message}");
             return null;
         }
     }
-
-   
 }

@@ -181,4 +181,69 @@ public async Task<IActionResult> ToggleUserPoint(
         return BadRequest($"Point could not be toggled: {ex.Message}");
     }
 }
+
+[HttpPatch("{id}")]
+[SwaggerOperation(
+    Summary = "Update Profile Partially",
+    Description = "Updates specific fields of a profile",
+    OperationId = "UpdateProfile"
+)]
+[SwaggerResponse(StatusCodes.Status200OK, "Profile updated successfully", typeof(ProfileResource))]
+[SwaggerResponse(StatusCodes.Status400BadRequest, "Profile could not be updated")]
+[SwaggerResponse(StatusCodes.Status404NotFound, "Profile not found")]
+public async Task<IActionResult> UpdateProfile(
+    [FromRoute] int id, 
+    [FromBody] UpdateProfileResource resource)
+{
+    try
+    {
+        // Primero obtener el perfil actual
+        var currentProfile = await profileQueryService.Handle(new GetProfileByIdQuery(id));
+        if (currentProfile is null)
+            return NotFound("Profile not found");
+
+        // Crear comando de actualización
+        var command = new UpdateProfileCommand(
+            id,
+            resource.Username ?? currentProfile.Username,
+            resource.Avatar ?? currentProfile.Avatar,
+            resource.Role ?? currentProfile.Role,
+            resource.Bio ?? currentProfile.Bio,
+            resource.Abilities ?? currentProfile.Abilities,
+            resource.Experiences ?? currentProfile.Experiences,
+            resource.Cv ?? currentProfile.Cv,
+            resource.Points,
+            resource.PointsGivenBy ?? currentProfile.PointsGivenBy
+        );
+
+        var profile = await profileCommandService.Handle(command);
+        
+        if (profile is null) 
+            return BadRequest("Profile could not be updated");
+        
+        var profileResource = ProfileResourceFromEntityAssembler.ToResourceFromEntity(profile);
+        return Ok(profileResource);
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Error in UpdateProfile endpoint: {ex.Message}");
+        return BadRequest($"Profile could not be updated: {ex.Message}");
+    }
+}
+[HttpPut("{id}")]
+[SwaggerOperation(
+    Summary = "Update Profile",
+    Description = "Updates an entire profile",
+    OperationId = "UpdateProfileFull"
+)]
+[SwaggerResponse(StatusCodes.Status200OK, "Profile updated successfully", typeof(ProfileResource))]
+[SwaggerResponse(StatusCodes.Status400BadRequest, "Profile could not be updated")]
+[SwaggerResponse(StatusCodes.Status404NotFound, "Profile not found")]
+public async Task<IActionResult> UpdateProfileFull(
+    [FromRoute] int id, 
+    [FromBody] UpdateProfileResource resource)
+{
+    // Misma implementación que el PATCH
+    return await UpdateProfile(id, resource);
+}
 }
