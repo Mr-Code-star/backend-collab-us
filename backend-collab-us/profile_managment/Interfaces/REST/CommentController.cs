@@ -23,11 +23,11 @@ public class CommentController(
         OperationId = "GetCommentsByProfileId"
     )]
     [SwaggerResponse(StatusCodes.Status200OK, "Comments Found", typeof(IEnumerable<CommentResource>))]
-    [SwaggerResponse(StatusCodes.Status404NotFound, "No comments found")]
     public async Task<IActionResult> GetCommentsByProfileId([FromQuery] int profileId)
     {
         var comments = await commentQueryService.Handle(new GetCommentsByProfileIdQuery(profileId));
-        if (!comments.Any()) return NotFound("No comments found for this profile");
+    
+        // ✅ CAMBIO: Devolver array vacío en lugar de 404
         var resources = comments.Select(CommentResourceFromEntityAssembler.ToResourceFromEntity);
         return Ok(resources);
     }

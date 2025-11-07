@@ -1,8 +1,10 @@
 ﻿using System.Net.Mime;
 using backend_collab_us.projects.domain.model.queries;
+using backend_collab_us.projects.domain.repository;
 using backend_collab_us.projects.domain.services;
 using backend_collab_us.projects.Interfaces.REST.Resources;
 using backend_collab_us.projects.Interfaces.REST.Transform;
+using backend_collab_us.Shared.Domain.Repositories;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
 
@@ -14,7 +16,9 @@ namespace backend_collab_us.projects.Interfaces;
 [SwaggerTag("Available Favorites Endpoints")]
 public class FavoritesController(
     IFavoriteCommandService favoriteCommandService,
-    IFavoriteQueryService favoriteQueryService) : ControllerBase
+    IFavoriteQueryService favoriteQueryService,
+    IFavoriteRepository favoriteRepository,
+    IUnitOfWork unitOfWork) : ControllerBase
 {
     [HttpGet("profile/{profileId}")]
     [SwaggerOperation(
@@ -22,12 +26,42 @@ public class FavoritesController(
         Description = "Returns all favorite projects for a specific profile.",
         OperationId = "GetFavoritesByProfile"
     )]
-    [SwaggerResponse(StatusCodes.Status200OK, "List of favorite projects", typeof(IEnumerable<ProjectResource>))]
+    [SwaggerResponse(StatusCodes.Status200OK, "List of favorite projects", typeof(IEnumerable<FavoriteResource>))]
     public async Task<IActionResult> GetFavoritesByProfile([FromRoute] int profileId)
     {
-        var projects = await favoriteQueryService.Handle(new GetFavoriteProjectsByProfileIdQuery(profileId));
-        var resources = projects.Select(ProjectResourceFromEntityAssembler.ToResourceFromEntity);
-        return Ok(resources);
+        try
+        {
+            var favorites = await favoriteQueryService.Handle(new GetFavoritesByProfileIdQuery(profileId));
+            var resources = favorites.Select(FavoriteResourceFromEntityAssembler.ToResourceFromEntity);
+            return Ok(resources);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error getting favorites: {ex.Message}");
+            return StatusCode(500, "Error retrieving favorites");
+        }
+    }
+
+    [HttpGet("profile/{profileId}/projects")]
+    [SwaggerOperation(
+        Summary = "Get Favorite Projects by Profile",
+        Description = "Returns all favorite projects for a specific profile.",
+        OperationId = "GetFavoriteProjectsByProfile"
+    )]
+    [SwaggerResponse(StatusCodes.Status200OK, "List of favorite projects", typeof(IEnumerable<ProjectResource>))]
+    public async Task<IActionResult> GetFavoriteProjectsByProfile([FromRoute] int profileId)
+    {
+        try
+        {
+            var projects = await favoriteQueryService.Handle(new GetFavoriteProjectsByProfileIdQuery(profileId));
+            var resources = projects.Select(ProjectResourceFromEntityAssembler.ToResourceFromEntity);
+            return Ok(resources);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error getting favorite projects: {ex.Message}");
+            return StatusCode(500, "Error retrieving favorite projects");
+        }
     }
 
     [HttpGet("profile/{profileId}/check/{projectId}")]
@@ -41,8 +75,16 @@ public class FavoritesController(
         [FromRoute] int profileId,
         [FromRoute] int projectId)
     {
-        var isFavorite = await favoriteQueryService.Handle(new CheckIfProjectIsFavoriteQuery(profileId, projectId));
-        return Ok(new { isFavorite });
+        try
+        {
+            var isFavorite = await favoriteQueryService.Handle(new CheckIfProjectIsFavoriteQuery(profileId, projectId));
+            return Ok(new { isFavorite });
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error checking favorite: {ex.Message}");
+            return StatusCode(500, "Error checking favorite status");
+        }
     }
 
     [HttpPost]
@@ -69,6 +111,35 @@ public class FavoritesController(
         {
             Console.WriteLine($"Error in AddToFavorites endpoint: {ex.Message}");
             return BadRequest($"Could not add to favorites: {ex.Message}");
+        }
+    }
+
+    [HttpDelete("profile/{profileId}/project/{projectId}")]
+    [SwaggerOperation(
+        Summary = "Remove from Favorites",
+        Description = "Removes a project from profile favorites.",
+        OperationId = "RemoveFromFavorites")]
+    [SwaggerResponse(StatusCodes.Status200OK, "Removed from favorites successfully")]
+    [SwaggerResponse(StatusCodes.Status404NotFound, "Favorite not found")]
+    public async Task<IActionResult> RemoveFromFavorites([FromRoute] int profileId, [FromRoute] int projectId)
+    {
+        try
+        {
+            // Buscar el favorito por profileId y projectId
+            var favorite = await favoriteRepository.FindByProfileAndProjectAsync(profileId, projectId);
+            if (favorite == null)
+                return NotFound("Favorite not found");
+
+            // Eliminar el favorito
+            favoriteRepository.Remove(favorite);
+            await unitOfWork.CompleteAsync();
+
+            return Ok(new { message = "Removed from favorites successfully" });
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error in RemoveFromFavorites endpoint: {ex.Message}");
+            return BadRequest($"Could not remove from favorites: {ex.Message}");
         }
     }
 }
