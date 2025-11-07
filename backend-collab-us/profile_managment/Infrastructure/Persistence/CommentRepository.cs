@@ -18,6 +18,6 @@ public class CommentRepository : BaseRepository<Comment>, ICommentRepository
         return await Context.Set<Comment>()
             .Where(c => c.ProfileId == profileId)
             .OrderByDescending(c => c.CreatedAt)
-            .ToListAsync();
+            .ToListAsync() ?? new List<Comment>(); // ✅ Asegurar que nunca sea null
     }
 }

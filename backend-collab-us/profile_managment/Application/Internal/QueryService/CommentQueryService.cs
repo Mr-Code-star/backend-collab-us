@@ -9,6 +9,7 @@ public class CommentQueryService(ICommentRepository commentRepository) : ICommen
 {
     public async Task<IEnumerable<Comment>> Handle(GetCommentsByProfileIdQuery query)
     {
-        return await commentRepository.FindByProfileIdAsync(query.ProfileId);
+        var comments = await commentRepository.FindByProfileIdAsync(query.ProfileId);
+        return comments ?? Enumerable.Empty<Comment>(); // ✅ Asegurar que nunca sea null
     }
 }
