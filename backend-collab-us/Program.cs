@@ -24,6 +24,11 @@ using backend_collab_us.Shared.Domain.Infrastructure.Interfaces.ASP.Configuratio
 using backend_collab_us.Shared.Domain.Repositories;
 using backend_collab_us.Shared.Infrastructure.Persistence.EFC.Configuration;
 using backend_collab_us.Shared.Infrastructure.Persistence.EFC.Repositories;
+using backend_collab_us.task_management.Application.Internal.CommandService;
+using backend_collab_us.task_management.Application.Internal.QueryService;
+using backend_collab_us.task_management.domain.repositories;
+using backend_collab_us.task_management.domain.Services;
+using backend_collab_us.task_management.Infrastructure.EFC.Persistence;
 using Cortex.Mediator.Behaviors;
 using Cortex.Mediator.Commands;
 using Cortex.Mediator.DependencyInjection;
@@ -134,6 +139,20 @@ builder.Services.AddScoped<IProjectQueryService, ProjectQueryService>();
 builder.Services.AddScoped<IApplicationQueryService, ApplicationQueryService>();
 builder.Services.AddScoped<IFavoriteQueryService, FavoriteQueryService>();
 
+// Task Management Bounded Context
+
+// Repositories
+builder.Services.AddScoped<ITaskRepository, TaskRepository>();
+builder.Services.AddScoped<ITaskSubmissionRepository, TaskSubmissionRepository>();
+// Command Services
+builder.Services.AddScoped<ITaskCommandService, TaskCommandService>();
+builder.Services.AddScoped<ITaskSubmissionCommandService, TaskSubmissionCommandService>();
+
+// Query Services
+builder.Services.AddScoped<ITaskQueryService, TaskQueryService>();
+builder.Services.AddScoped<ITaskSubmissionQueryService, TaskSubmissionQueryService>();
+
+
 // Add Mediator for CQRS
 builder.Services.AddCortexMediator(
     configuration: builder.Configuration,
@@ -145,7 +164,7 @@ builder.Services.AddCortexMediator(
 var app = builder.Build();
 
 // Verify if the database exists and create it if it doesn't
-using  (var scope = app.Services.CreateScope())
+using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
     var context = services.GetRequiredService<AppDbContext>();
