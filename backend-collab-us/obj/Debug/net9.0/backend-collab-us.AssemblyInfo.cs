@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("backend-collab-us")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+37e6271cb3665925b1bd4fbdcaa6d9caff567a3e")]
 [assembly: System.Reflection.AssemblyProductAttribute("backend-collab-us")]
 [assembly: System.Reflection.AssemblyTitleAttribute("backend-collab-us")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
