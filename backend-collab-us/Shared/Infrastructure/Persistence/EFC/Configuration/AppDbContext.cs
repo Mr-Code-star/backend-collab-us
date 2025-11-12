@@ -25,7 +25,6 @@ public class AppDbContext(DbContextOptions options) : DbContext(options)
     public DbSet<Comment> Comments { get; set; }
     
     // Projects Bounded Context 
-    
     public DbSet<Project> Projects { get; set; }
     public DbSet<Application> Applications { get; set; }
     public DbSet<Favorite> Favorites { get; set; }
@@ -42,7 +41,6 @@ public class AppDbContext(DbContextOptions options) : DbContext(options)
     public DbSet<TaskAttachment> TaskAttachments { get; set; }
 
     // Task Submission Bounded Context
-    
     public DbSet<TaskSubmission> TaskSubmissions { get; set; }
     public DbSet<SubmissionLink> SubmissionLinks { get; set; }
     public DbSet<SubmissionAttachment> SubmissionAttachments { get; set; }
@@ -56,6 +54,35 @@ public class AppDbContext(DbContextOptions options) : DbContext(options)
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
+        
+        // ✅ SOLUCIÓN: FORZAR NOMBRES DE TABLAS EN MINÚSCULA
+        foreach (var entity in builder.Model.GetEntityTypes())
+        {
+            // Cambiar nombre de tabla a minúscula
+            var currentTableName = entity.GetTableName();
+            if (!string.IsNullOrEmpty(currentTableName))
+            {
+                entity.SetTableName(currentTableName.ToLower());
+            }
+            
+            // Cambiar nombres de columnas a minúscula también
+            foreach (var property in entity.GetProperties())
+            {
+                property.SetColumnName(property.Name.ToLower());
+            }
+            
+            // Cambiar nombres de claves foráneas a minúscula
+            foreach (var key in entity.GetForeignKeys())
+            {
+                key.SetConstraintName(key.GetConstraintName().ToLower());
+            }
+            
+            // Cambiar nombres de índices a minúscula
+            foreach (var index in entity.GetIndexes())
+            {
+                index.SetDatabaseName(index.GetDatabaseName().ToLower());
+            }
+        }
         
         // Apply configurations for both bounded contexts
         builder.ApplyIamConfiguration();
