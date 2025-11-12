@@ -55,35 +55,6 @@ public class AppDbContext(DbContextOptions options) : DbContext(options)
     {
         base.OnModelCreating(builder);
         
-        // ✅ SOLUCIÓN: FORZAR NOMBRES DE TABLAS EN MINÚSCULA
-        foreach (var entity in builder.Model.GetEntityTypes())
-        {
-            // Cambiar nombre de tabla a minúscula
-            var currentTableName = entity.GetTableName();
-            if (!string.IsNullOrEmpty(currentTableName))
-            {
-                entity.SetTableName(currentTableName.ToLower());
-            }
-            
-            // Cambiar nombres de columnas a minúscula también
-            foreach (var property in entity.GetProperties())
-            {
-                property.SetColumnName(property.Name.ToLower());
-            }
-            
-            // Cambiar nombres de claves foráneas a minúscula
-            foreach (var key in entity.GetForeignKeys())
-            {
-                key.SetConstraintName(key.GetConstraintName().ToLower());
-            }
-            
-            // Cambiar nombres de índices a minúscula
-            foreach (var index in entity.GetIndexes())
-            {
-                index.SetDatabaseName(index.GetDatabaseName().ToLower());
-            }
-        }
-        
         // Apply configurations for both bounded contexts
         builder.ApplyIamConfiguration();
         builder.ApplyProfileManagementConfiguration();

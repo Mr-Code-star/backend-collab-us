@@ -39,7 +39,6 @@ using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// ✅ CONFIGURATION TO RAILWAY
 var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
 builder.WebHost.UseUrls($"http://*:{port}");
 
@@ -167,10 +166,6 @@ builder.Services.AddCortexMediator(
     
 var app = builder.Build();
 
-// ✅ LOG PARA VER EN QUÉ ENTORNO ESTÁS
-Console.WriteLine($"🔧 Environment: {app.Environment.EnvironmentName}");
-Console.WriteLine($"🚀 Application starting on port: {port}");
-
 // Verify if the database exists and create it if it doesn't
 using (var scope = app.Services.CreateScope())
 {
@@ -193,15 +188,6 @@ app.UseSwaggerUI(options =>
     options.SwaggerEndpoint("/swagger/v1/swagger.json", "News API v1");
     options.RoutePrefix = string.Empty;
 });
-
-
-if (!app.Environment.IsDevelopment())
-{
-    // ✅ CONFIGURACIÓN PARA PRODUCCIÓN
-    app.UseExceptionHandler("/error");
-    app.UseHsts();
-}
-
 // Apply Cors Policy
 app.UseCors("AllowAllPolicy");
 app.UseMiddleware<ExceptionMiddleware>();
@@ -209,14 +195,5 @@ app.UseMiddleware<ExceptionMiddleware>();
 app.UseHttpsRedirection();
 app.UseAuthorization();
 app.MapControllers();
-
-// ✅ ENDPOINTS DE PRUEBA
-app.MapGet("/", () => Results.Redirect("/swagger"));
-
-app.MapGet("/health", () => new { status = "Healthy", timestamp = DateTime.UtcNow });
-app.MapGet("/test", () => new { message = "API is working!", environment = app.Environment.EnvironmentName });
-
-// ✅ ENDPOINT DE ERROR PARA PRODUCCIÓN
-app.Map("/error", () => Results.Problem("An error occurred.", statusCode: 500));
 
 app.Run();
